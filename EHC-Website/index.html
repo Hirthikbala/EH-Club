@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EHC Portal</title>
+
+    <!-- Excel Reader -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        button {
+            border: none;
+            border-radius: 6px;
+            padding: 10px 18px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .login-container {
+            width: 380px;
+            max-width: 90%;
+            margin: 80px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.12);
+        }
+
+        .login-container h2 {
+            text-align: center;
+            color: #172554;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: #172554;
+            color: white;
+        }
+
+        .login-btn:hover {
+            background: #1e3a8a;
+        }
+
+        .message {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .welcome {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #172554;
+        }
+
+        .score {
+            font-size: 35px;
+            font-weight: bold;
+            color: #15803d;
+        }
+
+        .primary {
+            background: #172554;
+            color: white;
+        }
+
+        .success {
+            background: #15803d;
+            color: white;
+        }
+
+        .danger {
+            background: #b91c1c;
+            color: white;
+        }
+
+        .event {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 12px;
+        }
+
+        .event h4 {
+            margin: 0 0 8px;
+        }
+
+        .quiz-container {
+            background: white;
+            padding: 25px;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .option {
+            display: block;
+            background: #f8fafc;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background: #eef2ff;
+        }
+
+        .option input {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .timer {
+            font-size: 20px;
+            font-weight: bold;
+            color: #b91c1c;
+            margin-bottom: 15px;
+        }
+
+        .profile-row {
+            margin: 8px 0;
+        }
+
+        .profile-row strong {
+            display: inline-block;
+            width: 130px;
+        }
+
+        @media(max-width:600px) {
+            .login-container {
+                margin-top: 40px;
+            }
+
+            header {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= LOGIN ================= -->
+
+<div id="loginPage">
+
+    <div class="login-container">
+
+        <h2>EHC Student Portal</h2>
+
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Enter username">
+
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter password">
+
+        <button class="login-btn" onclick="login()">
+            Login
+        </button>
+
+        <div id="loginMessage" class="message"></div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= MAIN WEBSITE ================= -->
+
+<div id="mainPage" class="hidden">
+
+    <header>
+
+        <h1>Electronics Hardware Club</h1>
+
+        <button class="danger" onclick="logout()">
+            Logout
+        </button>
+
+    </header>
+
+
+    <div class="dashboard">
+
+        <!-- WELCOME -->
+
+        <div class="welcome">
+
+            <h2>
+                Welcome, <span id="studentName"></span>
+            </h2>
+
+            <div id="studentDetails"></div>
+
+        </div>
+
+
+        <!-- CARDS -->
+
+        <div class="cards">
+
+            <!-- QUIZ SCORE -->
+
+            <div class="card">
+
+                <h3>Quiz Score</h3>
+
+                <div class="score" id="scoreDisplay">
+                    0
+                </div>
+
+                <p id="quizStatus">
+                    You have not attended today's quiz.
+                </p>
+
+                <button
+                    id="quizButton"
+                    class="primary"
+                    onclick="openQuiz()">
+                    Attend Quiz
+                </button>
+
+            </div>
+
+
+            <!-- EVENTS -->
+
+            <div class="card">
+
+                <h3>Events</h3>
+
+                <p>
+                    Register for upcoming EHC events.
+                </p>
+
+                <button
+                    class="primary"
+                    onclick="showEvents()">
+                    View Events
+                </button>
+
+            </div>
+
+
+            <!-- ACHIEVEMENT -->
+
+            <div class="card">
+
+                <h3>Achievements</h3>
+
+                <p id="achievementDisplay">
+                    No achievements added yet.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- QUIZ -->
+
+        <div
+            id="quizSection"
+            class="quiz-container hidden">
+
+            <h2>Today's Quiz</h2>
+
+            <div class="timer">
+                Time:
+                <span id="timer">
+                    30
+                </span>
+                seconds
+            </div>
+
+            <div id="questionArea"></div>
+
+            <button
+                class="success"
+                onclick="submitQuiz()">
+                Submit Quiz
+            </button>
+
+            <div
+                id="quizMessage"
+                class="message">
+            </div>
+
+        </div>
+
+
+        <!-- EVENTS -->
+
+        <div
+            id="eventsSection"
+            class="quiz-container hidden">
+
+            <h2>Upcoming Events</h2>
+
+            <div id="eventsArea"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   GLOBAL VARIABLES
+===================================================== */
+
+let loginUsers = [];
+let students = [];
+let questions = [];
+let events = [];
+
+let currentUser = null;
+
+let timerInterval = null;
+let timeLeft = 30;
+
+
+/* =====================================================
+   READ EXCEL FILE
+===================================================== */
+
+async function readExcel(filename) {
+
+    try {
+
+        const response = await fetch(filename);
+
+        if (!response.ok) {
+            throw new Error(
+                "Cannot load " + filename
+            );
+        }
+
+        const arrayBuffer =
+            await response.arrayBuffer();
+
+        const workbook =
+            XLSX.read(arrayBuffer, {
+                type: "array"
+            });
+
+        const sheet =
+            workbook.Sheets[
+                workbook.SheetNames[0]
+            ];
+
+        return XLSX.utils.sheet_to_json(sheet);
+
+    } catch (error) {
+
+        console.error(
+            "Excel error:",
+            filename,
+            error
+        );
+
+        return [];
+
+    }
+
+}
+
+
+/* =====================================================
+   LOAD ALL EXCEL DATA
+===================================================== */
+
+async function loadExcelData() {
+
+    console.log("Loading EHC Excel data...");
+
+    loginUsers =
+        await readExcel("login_users.xlsx");
+
+    students =
+        await readExcel("students.xlsx");
+
+    questions =
+        await readExcel("questions.xlsx");
+
+    events =
+        await readExcel("events.xlsx");
+
+    console.log("Login users:", loginUsers);
+    console.log("Students:", students);
+    console.log("Questions:", questions);
+    console.log("Events:", events);
+
+}
+
+
+/* =====================================================
+   PAGE LOAD
+===================================================== */
+
+window.addEventListener(
+    "load",
+    async function() {
+
+        await loadExcelData();
+
+        /*
+           If a student was already logged in,
+           restore the login after refresh.
+        */
+
+        const savedUser =
+            localStorage.getItem(
+                "ehc_current_user"
+            );
+
+        if (savedUser) {
+
+            currentUser = savedUser;
+
+            showDashboard();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+async function login() {
+
+    const username =
+        document
+            .getElementById("username")
+            .value
+            .trim();
+
+    const password =
+        document
+            .getElementById("password")
+            .value
+            .trim();
+
+    const message =
+        document.getElementById(
+            "loginMessage"
+        );
+
+    if (!username || !password) {
+
+        message.innerText =
+            "Please enter username and password.";
+
+        message.style.color = "red";
+
+        return;
+
+    }
+
+
+    /*
+       Find user in login_users.xlsx
+    */
+
+    const user =
+        loginUsers.find(function(u) {
+
+            return String(u.username).trim()
+                === username
+                &&
+                String(u.password).trim()
+                === password;
+
+        });
+
+
+    if (!user) {
+
+        message.innerText =
+            "Invalid username or password.";
+
+        message.style.color = "red";
+
+        return;
+
+    }
+
+
+    /*
+       Login successful
+    */
+
+    currentUser = username;
+
+    /*
+       VERY IMPORTANT:
+       Save logged-in username.
+       This survives page refresh.
+    */
+
+    localStorage.setItem(
+        "ehc_current_user",
+        username
+    );
+
+    showDashboard();
+
+}
+
+
+/* =====================================================
+   SHOW DASHBOARD
+===================================================== */
+
+function showDashboard() {
+
+    document
+        .getElementById("loginPage")
+        .classList.add("hidden");
+
+    document
+        .getElementById("mainPage")
+        .classList.remove("hidden");
+
+
+    /*
+       Find student information
+    */
+
+    const student =
+        students.find(function(s) {
+
+            return String(s.username).trim()
+                === String(currentUser).trim();
+
+        });
+
+
+    if (!student) {
+
+        document.getElementById(
+            "studentName"
+        ).innerText = currentUser;
+
+        document.getElementById(
+            "studentDetails"
+        ).innerHTML =
+            "<p>Student details not found.</p>";
+
+    } else {
+
+        document.getElementById(
+            "studentName"
+        ).innerText =
+            student.name || currentUser;
+
+
+        document.getElementById(
+            "studentDetails"
+        ).innerHTML = `
+
+            <div class="profile-row">
+                <strong>Reg No:</strong>
+                ${student.reg_no || student.regNo || "-"}
+            </div>
+
+            <div class="profile-row">
+                <strong>Year:</strong>
+                ${student.year || "-"}
+            </div>
+
+            <div class="profile-row">
+                <strong>Department:</strong>
+                ${student.department || "-"}
+            </div>
+
+            <div class="profile-row">
+                <strong>Email:</strong>
+                ${student.email || "-"}
+            </div>
+
+            <div class="profile-row">
+                <strong>Phone:</strong>
+                ${student.phone || "-"}
+            </div>
+
+        `;
+
+
+        document.getElementById(
+            "achievementDisplay"
+        ).innerText =
+            student.achievement ||
+            student.achievements ||
+            "No achievements added yet.";
+
+    }
+
+
+    updateQuizDisplay();
+
+}
+
+
+/* =====================================================
+   QUIZ STORAGE KEY
+===================================================== */
+
+/*
+   Each student's quiz status is stored separately.
+
+   Example:
+
+   ehc_quiz_username1
+
+   This prevents one student's quiz status
+   from affecting another student.
+*/
+
+function getQuizStorageKey() {
+
+    return "ehc_quiz_" +
+        String(currentUser).trim();
+
+}
+
+
+/* =====================================================
+   GET SAVED QUIZ DATA
+===================================================== */
+
+function getQuizData() {
+
+    const key =
+        getQuizStorageKey();
+
+    const saved =
+        localStorage.getItem(key);
+
+    if (!saved) {
+
+        return {
+            completed: false,
+            score: 0
+        };
+
+    }
+
+    try {
+
+        return JSON.parse(saved);
+
+    } catch (error) {
+
+        return {
+            completed: false,
+            score: 0
+        };
+
+    }
+
+}
+
+
+/* =====================================================
+   UPDATE QUIZ DISPLAY
+===================================================== */
+
+function updateQuizDisplay() {
+
+    const quizData =
+        getQuizData();
+
+
+    /*
+       Show saved score
+    */
+
+    document.getElementById(
+        "scoreDisplay"
+    ).innerText =
+        quizData.score;
+
+
+    /*
+       If quiz already completed
+    */
+
+    if (quizData.completed) {
+
+        document.getElementById(
+            "quizStatus"
+        ).innerText =
+            "You have already completed today's quiz.";
+
+        const button =
+            document.getElementById(
+                "quizButton"
+            );
+
+        button.innerText =
+            "Quiz Completed";
+
+        button.disabled = true;
+
+        button.style.opacity = "0.6";
+
+    } else {
+
+        document.getElementById(
+            "quizStatus"
+        ).innerText =
+            "You have not attended today's quiz.";
+
+        const button =
+            document.getElementById(
+                "quizButton"
+            );
+
+        button.innerText =
+            "Attend Quiz";
+
+        button.disabled = false;
+
+        button.style.opacity = "1";
+
+    }
+
+}
+
+
+/* =====================================================
+   OPEN QUIZ
+===================================================== */
+
+function openQuiz() {
+
+    const quizData =
+        getQuizData();
+
+
+    /*
+       Prevent second attempt
+    */
+
+    if (quizData.completed) {
+
+        alert(
+            "You have already completed today's quiz."
+        );
+
+        return;
+
+    }
+
+
+    if (questions.length === 0) {
+
+        alert(
+            "No quiz questions found in questions.xlsx."
+        );
+
+        return;
+
+    }
+
+
+    document
+        .getElementById("quizSection")
+        .classList.remove("hidden");
+
+
+    /*
+       Use first question for now.
+       We can add multiple questions later.
+    */
+
+    const q = questions[0];
+
+
+    const questionText =
+        q.question || q.Question || "";
+
+
+    const optionA =
+        q.option_a || q.Option_A || "";
+
+
+    const optionB =
+        q.option_b || q.Option_B || "";
+
+
+    const optionC =
+        q.option_c || q.Option_C || "";
+
+
+    const optionD =
+        q.option_d || q.Option_D || "";
+
+
+    document.getElementById(
+        "questionArea"
+    ).innerHTML = `
+
+        <h3>${questionText}</h3>
+
+        <label class="option">
+            <input
+                type="radio"
+                name="answer"
+                value="A">
+            ${optionA}
+        </label>
+
+        <label class="option">
+            <input
+                type="radio"
+                name="answer"
+                value="B">
+            ${optionB}
+        </label>
+
+        <label class="option">
+            <input
+                type="radio"
+                name="answer"
+                value="C">
+            ${optionC}
+        </label>
+
+        <label class="option">
+            <input
+                type="radio"
+                name="answer"
+                value="D">
+            ${optionD}
+        </label>
+
+    `;
+
+
+    startTimer();
+
+}
+
+
+/* =====================================================
+   QUIZ TIMER
+===================================================== */
+
+function startTimer() {
+
+    clearInterval(timerInterval);
+
+    timeLeft = 30;
+
+    document.getElementById(
+        "timer"
+    ).innerText = timeLeft;
+
+
+    timerInterval =
+        setInterval(function() {
+
+            timeLeft--;
+
+            document.getElementById(
+                "timer"
+            ).innerText =
+                timeLeft;
+
+
+            if (timeLeft <= 0) {
+
+                clearInterval(
+                    timerInterval
+                );
+
+                alert(
+                    "Time is over. Quiz submitted."
+                );
+
+                submitQuiz();
+
+            }
+
+        }, 1000);
+
+}
+
+
+/* =====================================================
+   SUBMIT QUIZ
+===================================================== */
+
+function submitQuiz() {
+
+    clearInterval(timerInterval);
+
+
+    const quizData =
+        getQuizData();
+
+
+    /*
+       Prevent duplicate submission
+    */
+
+    if (quizData.completed) {
+
+        alert(
+            "Quiz has already been completed."
+        );
+
+        return;
+
+    }
+
+
+    const selected =
+        document.querySelector(
+            'input[name="answer"]:checked'
+        );
+
+
+    if (!selected) {
+
+        alert(
+            "Please select an answer."
+        );
+
+        return;
+
+    }
+
+
+    const answer =
+        selected.value;
+
+
+    const question =
+        questions[0];
+
+
+    const correctAnswer =
+        String(
+            question.correct_answer ||
+            question.correctAnswer ||
+            ""
+        )
+        .trim()
+        .toUpperCase();
+
+
+    let score = 0;
+
+
+    if (answer === correctAnswer) {
+
+        score = 1;
+
+    } else {
+
+        score = 0;
+
+    }
+
+
+    /*
+       SAVE QUIZ DATA
+
+       This is the important change.
+
+       Score and completion status are both
+       saved together.
+    */
+
+    const newQuizData = {
+
+        completed: true,
+
+        score: score,
+
+        completedAt:
+            new Date().toISOString()
+
+    };
+
+
+    localStorage.setItem(
+
+        getQuizStorageKey(),
+
+        JSON.stringify(newQuizData)
+
+    );
+
+
+    /*
+       Update screen immediately
+    */
+
+    document.getElementById(
+        "scoreDisplay"
+    ).innerText = score;
+
+
+    document.getElementById(
+        "quizMessage"
+    ).innerText =
+        "Quiz submitted successfully. Your score is " +
+        score;
+
+
+    /*
+       Hide quiz
+    */
+
+    document
+        .getElementById("quizSection")
+        .classList.add("hidden");
+
+
+    /*
+       Update completed status
+    */
+
+    updateQuizDisplay();
+
+
+    alert(
+        "Quiz submitted successfully!\nYour score: " +
+        score
+    );
+
+}
+
+
+/* =====================================================
+   EVENTS
+===================================================== */
+
+function showEvents() {
+
+    document
+        .getElementById("eventsSection")
+        .classList.remove("hidden");
+
+
+    const area =
+        document.getElementById(
+            "eventsArea"
+        );
+
+
+    if (events.length === 0) {
+
+        area.innerHTML =
+            "<p>No events available.</p>";
+
+        return;
+
+    }
+
+
+    area.innerHTML = "";
+
+
+    events.forEach(function(event, index) {
+
+        const eventId =
+            event.event_id ||
+            event.eventId ||
+            index + 1;
+
+
+        const eventName =
+            event.event_name ||
+            event.eventName ||
+            "Unnamed Event";
+
+
+        const date =
+            event.date || "-";
+
+
+        const venue =
+            event.venue || "-";
+
+
+        const description =
+            event.description || "";
+
+
+        const registered =
+            isRegistered(eventId);
+
+
+        const eventDiv =
+            document.createElement("div");
+
+        eventDiv.className = "event";
+
+
+        eventDiv.innerHTML = `
+
+            <h4>${eventName}</h4>
+
+            <p>
+                <strong>Date:</strong>
+                ${date}
+            </p>
+
+            <p>
+                <strong>Venue:</strong>
+                ${venue}
+            </p>
+
+            <p>
+                ${description}
+            </p>
+
+            <button
+                class="${registered ? "success" : "primary"}"
+                onclick="registerEvent('${eventId}')"
+                ${registered ? "disabled" : ""}>
+
+                ${
+                    registered
+                    ? "Registered"
+                    : "Register"
+                }
+
+            </button>
+
+        `;
+
+
+        area.appendChild(eventDiv);
+
+    });
+
+}
+
+
+/* =====================================================
+   EVENT STORAGE KEY
+===================================================== */
+
+function getRegistrationStorageKey() {
+
+    return "ehc_event_registrations";
+
+}
+
+
+/* =====================================================
+   GET ALL REGISTRATIONS
+===================================================== */
+
+function getRegistrations() {
+
+    const saved =
+        localStorage.getItem(
+            getRegistrationStorageKey()
+        );
+
+
+    if (!saved) {
+
+        return [];
+
+    }
+
+
+    try {
+
+        return JSON.parse(saved);
+
+    } catch (error) {
+
+        return [];
+
+    }
+
+}
+
+
+/* =====================================================
+   CHECK REGISTRATION
+===================================================== */
+
+function isRegistered(eventId) {
+
+    const registrations =
+        getRegistrations();
+
+
+    return registrations.some(function(r) {
+
+        return String(r.username)
+            === String(currentUser)
+            &&
+            String(r.event_id)
+            === String(eventId);
+
+    });
+
+}
+
+
+/* =====================================================
+   REGISTER EVENT
+===================================================== */
+
+function registerEvent(eventId) {
+
+    /*
+       Prevent duplicate registration
+    */
+
+    if (isRegistered(eventId)) {
+
+        alert(
+            "You are already registered for this event."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Find event
+    */
+
+    const event =
+        events.find(function(e, index) {
+
+            const id =
+                e.event_id ||
+                e.eventId ||
+                index + 1;
+
+            return String(id)
+                === String(eventId);
+
+        });
+
+
+    if (!event) {
+
+        alert(
+            "Event not found."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Create registration record
+    */
+
+    const registration = {
+
+        username: currentUser,
+
+        event_id: eventId,
+
+        event_name:
+            event.event_name ||
+            event.eventName ||
+            "",
+
+        date:
+            event.date || "",
+
+        venue:
+            event.venue || "",
+
+        registered_at:
+            new Date().toISOString()
+
+    };
+
+
+    /*
+       Get existing registrations
+    */
+
+    const registrations =
+        getRegistrations();
+
+
+    /*
+       Add new registration
+    */
+
+    registrations.push(
+        registration
+    );
+
+
+    /*
+       SAVE REGISTRATION
+
+       This survives page refresh.
+    */
+
+    localStorage.setItem(
+
+        getRegistrationStorageKey(),
+
+        JSON.stringify(
+            registrations
+        )
+
+    );
+
+
+    alert(
+        "Event registration successful!"
+    );
+
+
+    /*
+       Refresh event display
+    */
+
+    showEvents();
+
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+function logout() {
+
+    currentUser = null;
+
+
+    /*
+       Remove only login session.
+
+       Quiz and event data are NOT deleted.
+       Therefore they remain saved.
+    */
+
+    localStorage.removeItem(
+        "ehc_current_user"
+    );
+
+
+    document
+        .getElementById("mainPage")
+        .classList.add("hidden");
+
+
+    document
+        .getElementById("loginPage")
+        .classList.remove("hidden");
+
+
+    document.getElementById(
+        "username"
+    ).value = "";
+
+    document.getElementById(
+        "password"
+    ).value = "";
+
+
+    document.getElementById(
+        "loginMessage"
+    ).innerText = "";
+
+}
+
+
+/* =====================================================
+   CONSOLE INFORMATION
+===================================================== */
+
+console.log(
+    "EHC Portal JavaScript loaded."
+);
+
+</script>
+
+</body>
+</html>
